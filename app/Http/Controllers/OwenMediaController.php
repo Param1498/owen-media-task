@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\OwenMediaRegistration;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Hash;
 
 class OwenMediaController extends Controller
@@ -16,7 +17,7 @@ class OwenMediaController extends Controller
      * @return \Illuminate\Http\RedirectResponse
      */
 
-    public function register(Request $request)
+    public function register(Request $request) : RedirectResponse
     {
         // Validate the incoming request data
         $request->validate([
@@ -24,7 +25,7 @@ class OwenMediaController extends Controller
             'email' => 'required|email|unique:owen_media_registrations,email',
             'gender' => 'required|in:Male,Female',
             'password' => 'required|string|regex:/[!@#$%^&*()_+]/',
-            'pdf_file' => 'required|file|mimes:pdf|max:1024', // 1MB
+            'pdf_file' => 'required|file|mimes:pdf|max:1024',
         ]);
 
         // Saving the pdf file from the request

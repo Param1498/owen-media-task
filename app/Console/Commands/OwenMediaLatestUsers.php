@@ -28,7 +28,7 @@ class OwenMediaLatestUsers extends Command
    /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(): void
     {
         // Get the email argument from the command line
         $email = $this->argument('email');
@@ -58,7 +58,7 @@ class OwenMediaLatestUsers extends Command
      *
      * @param OwenMediaRegistration $registration
      */
-    protected function sendEmail(OwenMediaRegistration $registration)
+    protected function sendEmail(OwenMediaRegistration $registration) : void
     {
         try {
             // Construct the PDF file path
@@ -80,7 +80,7 @@ class OwenMediaLatestUsers extends Command
      /**
      * Send emails to the latest two registrations.
      */
-    protected function sendEmailsToLatestRegistrations()
+    protected function sendEmailsToLatestRegistrations() : void
     {
         // Get the first two records from the database
         $registrations = OwenMediaRegistration::limit(2)->get();
