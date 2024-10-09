@@ -33,7 +33,7 @@ class OwenMediaMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Owen Media Mail',
+            subject: 'OwenMedia Mail',
         );
     }
 
