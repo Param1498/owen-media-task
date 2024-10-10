@@ -23,7 +23,7 @@ class OwenMediaLatestUsers extends Command
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'Email functionalty for Owen Media with PDF attachment';
 
    /**
      * Execute the console command.
