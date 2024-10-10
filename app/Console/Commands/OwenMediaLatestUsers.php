@@ -6,6 +6,8 @@ use Illuminate\Console\Command;
 use App\Models\OwenMediaRegistration;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\OwenMediaMail;
+use App\Exceptions\CustomCommandException;
+
 
 
 
@@ -73,7 +75,7 @@ class OwenMediaLatestUsers extends Command
             // Send the email with the PDF attachment
             Mail::to($registration->email)->send(new OwenMediaMail($pdfPath, $registration->name));
             $this->info("Email sent to {$registration->email} with attachment.");
-        } catch (Exception $e) {
+        } catch (CustomCommandException $e) {
             $this->error("Failed to send email to {$registration->email}: " . $e->getMessage());
         }
     }
