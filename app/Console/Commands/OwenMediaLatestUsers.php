@@ -7,7 +7,9 @@ use App\Models\OwenMediaRegistration;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\OwenMediaMail;
 use App\Exceptions\CustomCommandException;
+use Illuminate\Support\Facades\Log;
 class OwenMediaLatestUsers extends Command
+
 {
     /**
      * The name and signature of the console command.
@@ -55,13 +57,16 @@ class OwenMediaLatestUsers extends Command
         } catch (CustomCommandException $e) {
             // Log the detailed error and show a general message
             $this->error(
-                "There was an issue with the mail configuration. Please check your settings."
+                "Invalid mail configuration: There was an issue with the mail configuration. Please check your settings."
             );
+            Log::error($e->getMessage()); // Log the detailed error for debugging
         } catch (\Exception $e) {
             // Handle other exceptions
             $this->error(
                 "An unexpected error occurred. Please try again later."
             );
+            Log::error($e->getMessage()); // Log the detailed error for debugging
+
         }
 
         $this->info("Email Custom Command Process has been completed.");
@@ -136,9 +141,7 @@ class OwenMediaLatestUsers extends Command
             !$mailPassword
         ) {
             throw new CustomCommandException("Invalid mail configuration: 
-                MAIL_MAILER must be 'smtp', 
-                MAIL_HOST must be 'smtp.gmail.com', 
-                MAIL_USERNAME and MAIL_PASSWORD must not be empty.");
+               There was an issue with the mail configuration. Please check your settings.");
         }
     }
 }
