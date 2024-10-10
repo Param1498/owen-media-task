@@ -7,10 +7,6 @@ use App\Models\OwenMediaRegistration;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\OwenMediaMail;
 use App\Exceptions\CustomCommandException;
-
-
-
-
 class OwenMediaLatestUsers extends Command
 {
     /**
@@ -18,53 +14,69 @@ class OwenMediaLatestUsers extends Command
      *
      * @var string
      */
-    protected $signature = 'owen:latest {email?}';
+    protected $signature = "owen:latest {email?}";
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Email functionalty for Owen Media with PDF attachment';
+    protected $description = "Email functionalty for Owen Media with PDF attachment";
 
-   /**
+    /**
      * Execute the console command.
      */
     public function handle(): void
     {
-        // Get the email argument from the command line
-        $email = $this->argument('email');
+        try {
+            // Check if the required mail configuration is set
+            $this->checkMailConfiguration();
+            // Get the email argument from the command line
+            $email = $this->argument("email");
+            // If an email is provided, send to that specific email address
+            if ($email) {
+                $registration = OwenMediaRegistration::where(
+                    "email",
+                    $email
+                )->first();
 
-        // If an email is provided, send to that specific email address
-        if ($email) {
-            $registration = OwenMediaRegistration::where('email', $email)->first();
+                if (!$registration) {
+                    $this->error("No registration found for email: {$email}");
+                    return;
+                }
 
-            if (!$registration) {
-                $this->error("No registration found for email: {$email}");
-                return;
+                // Send the email to the specific address
+                $this->sendEmail($registration);
             }
-
-            // Send the email to the specific address
-            $this->sendEmail($registration);
-        } 
-        // Otherwise, get the first two records and send emails
-        else {
-            $this->sendEmailsToLatestRegistrations();
+            // Otherwise, get the first two records and send emails
+            else {
+                $this->sendEmailsToLatestRegistrations();
+            }
+        } catch (CustomCommandException $e) {
+            // Log the detailed error and show a general message
+            $this->error(
+                "There was an issue with the mail configuration. Please check your settings."
+            );
+        } catch (\Exception $e) {
+            // Handle other exceptions
+            $this->error(
+                "An unexpected error occurred. Please try again later."
+            );
         }
 
-        $this->info('Email Custom Command Process has been completed.');
+        $this->info("Email Custom Command Process has been completed.");
     }
 
-     /**
+    /**
      * Send email to a specific user/registration.
      *
      * @param OwenMediaRegistration $registration
      */
-    protected function sendEmail(OwenMediaRegistration $registration) : void
+    protected function sendEmail(OwenMediaRegistration $registration): void
     {
         try {
-            // Construct the PDF file path
-            $pdfPath = storage_path('app/public/' . $registration->file_path);
+            // PDF file path
+            $pdfPath = storage_path("app/public/" . $registration->file_path);
 
             // Check if the file exists before sending the email
             if (!file_exists($pdfPath)) {
@@ -73,28 +85,60 @@ class OwenMediaLatestUsers extends Command
             }
 
             // Send the email with the PDF attachment
-            Mail::to($registration->email)->send(new OwenMediaMail($pdfPath, $registration->name));
-            $this->info("Email sent to {$registration->email} with attachment.");
-        } catch (CustomCommandException $e) {
-            $this->error("Failed to send email to {$registration->email}: " . $e->getMessage());
+            Mail::to($registration->email)->send(
+                new OwenMediaMail($pdfPath, $registration->name)
+            );
+            $this->info(
+                "Email sent to {$registration->email} with attachment."
+            );
+        } catch (\Exception $e) {
+            $this->error(
+                "Failed to send email to {$registration->email}: " .
+                    $e->getMessage()
+            );
         }
     }
-     /**
+    /**
      * Send emails to the latest two registrations.
      */
-    protected function sendEmailsToLatestRegistrations() : void
+    protected function sendEmailsToLatestRegistrations(): void
     {
         // Get the first two records from the database
         $registrations = OwenMediaRegistration::limit(2)->get();
 
         // Check if there are no registrations found
         if ($registrations->isEmpty()) {
-            $this->info('No registrations found.');
+            $this->info("No registrations found.");
             return;
         }
 
         foreach ($registrations as $registration) {
             $this->sendEmail($registration); // Reuse the common sendEmail method
+        }
+    }
+    /**
+     * Check if the mail configuration is set correctly in the .env file.
+     *
+     * @throws CustomCommandException
+     */
+    protected function checkMailConfiguration(): void
+    {
+        $mailMailer = env("MAIL_MAILER");
+        $mailHost = env("MAIL_HOST");
+        $mailUsername = env("MAIL_USERNAME");
+        $mailPassword = env("MAIL_PASSWORD");
+
+        // Check if the configuration is valid
+        if (
+            $mailMailer !== "smtp" ||
+            $mailHost !== "smtp.gmail.com" ||
+            !$mailUsername ||
+            !$mailPassword
+        ) {
+            throw new CustomCommandException("Invalid mail configuration: 
+                MAIL_MAILER must be 'smtp', 
+                MAIL_HOST must be 'smtp.gmail.com', 
+                MAIL_USERNAME and MAIL_PASSWORD must not be empty.");
         }
     }
 }
