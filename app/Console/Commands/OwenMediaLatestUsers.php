@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\OwenMediaMail;
 use App\Exceptions\CustomCommandException;
 use Illuminate\Support\Facades\Log;
+use \App\Jobs\OwenMediaEmailTask;
 class OwenMediaLatestUsers extends Command
 
 {
@@ -93,6 +94,8 @@ class OwenMediaLatestUsers extends Command
             Mail::to($registration->email)->send(
                 new OwenMediaMail($pdfPath, $registration->name)
             );
+            // OwenMediaEmailTask::dispatch($registration, $pdfPath)
+            // ->onQueue('emails');
             $this->info(
                 "Email sent to {$registration->email} with attachment."
             );
@@ -140,7 +143,7 @@ class OwenMediaLatestUsers extends Command
             !$mailUsername ||
             !$mailPassword
         ) {
-            throw new CustomCommandException("Invalid mail configuration: 
+            throw new CustomCommandException("Invalid mail configuration:
                There was an issue with the mail configuration. Please check your settings.");
         }
     }
